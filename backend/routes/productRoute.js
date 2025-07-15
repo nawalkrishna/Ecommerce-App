@@ -23,10 +23,6 @@ productRouter.post(
   addProduct // Controller function to handle the request
 );
 
-// productRouter.post("/add", (req, res) => {
-//   console.log("Add Product route hit!");
-//   res.status(200).json({ success: true, message: "Test hit!" });
-// });
 productRouter.post("/remove", adminAuth, removeProduct);
 productRouter.post("/single", singleProduct);
 productRouter.get("/list", listProduct);

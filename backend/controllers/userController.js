@@ -33,7 +33,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-const registerUser = async (req, res) => {
+const registerUsers = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -97,4 +97,4 @@ const adminLogin = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser, adminLogin };
+export { loginUser, registerUsers, adminLogin };
