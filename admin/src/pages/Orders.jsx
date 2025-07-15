@@ -1,76 +1,111 @@
+import React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
 import { backendUrl, currency } from "../App";
 import { toast } from "react-toastify";
+import { assets } from "../assets/assets";
 
-const List = ({token}) => {
-  const [list, setList] = useState([]);
+const Orders = ({ token }) => {
+  const [orders, setOrders] = useState([]);
 
-  const fetchList = async () => {
+  const fetchAllOrders = async () => {
+    if (!token) return;
+
     try {
-      const response = await axios.get(backendUrl + "/api/product/list");
+      const response = await axios.post(
+        backendUrl + "/api/order/list",
+        {},
+        { headers: { token } }
+      );
       if (response.data.success) {
-        // console.log(response.data.products);
-        setList(response.data.products);
+        setOrders(response.data.orders.reverse());
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(error.message);
     }
   };
 
-  const removeProduct = async (id)=>{
+  const statusHandler =async (event, orderId)=>{
     try {
-      const response = await axios.post(backendUrl + '/api/product/remove', {id}, {headers:{token}})
-
-      if (response.data.success) {
-        toast.success(response.data.message)
-        await fetchList()
-      } else {
-        toast.error(response.data.message)
+      const response = await axios.post(backendUrl + '/api/order/status', {orderId, status: event.target.value}, {headers: {token}})
+      if(response.data.success){
+        await fetchAllOrders()
       }
-
     } catch (error) {
       console.log(error)
-      toast.error(error.message)
+      toast.error(error.data.message)
     }
   }
 
   useEffect(() => {
-    fetchList();
-  }, []);
+    fetchAllOrders();
+  }, [token]);
 
   return (
-    <>
-      <p className="mb-2">Products List</p>
-      <div className="flex flex-col gap-2">
-        {/* ------- List Table -------- */}
-
-        <div className="hidden md:grid grid-cols-[1fr_3fr_1fr_1fr_1fr] items-center py-1 px-2 border bg-gray-100 text-sm ">
-          <b>Image</b>
-          <b>Name</b>
-          <b>Category</b>
-          <b>Price</b>
-          <b>Action</b>
-        </div>
-
-        {/* ---------- Product List -----------*/}
-        {
-          list.map((item, index) => (
-            <div key={index} className="grid grid-cols-[1fr_3fr_1fr_1fr_1fr] items-center py-1 px-2 border-b">
-              <img className="w-12" src={item.image[0]} alt={item.name} />
-              <p>{item.name}</p>
-              <p>{item.category}</p>
-              <p>{currency}{item.price}</p>
-              <button onClick={()=>removeProduct(item._id)} className="text-right md:text-center cursor-pointer text-lg">X</button>
+    <div>
+      <h3>Order Page</h3>
+      <div>
+        {orders.map((order, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-[0.5fr_2fr_1fr] lg:grid-cols-[0.5fr_2fr_1fr_1fr_1fr] gap-3 items-start border-2 border-gray-200 p-5 md:p-8 my-3 md:my-4 text-xs sm:text-sm text-gray-700 " key={index}>
+            <img className="w-12" src={assets.parcel_icon} alt="" />
+            <div>
+              <div>
+                {order.items.map((item, index) => {
+                  if (index === order.items.length - 1) {
+                    return (
+                      <p className="py-0.5" key={index}>
+                        {item.name} x {item.quantity} <span>{item.size}</span>
+                      </p>
+                    );
+                  } else {
+                    return (
+                      <p className="py-0.5" key={index}>
+                        {item.name} x {item.quantity} <span>{item.size}</span>,
+                      </p>
+                    );
+                  }
+                })}
+              </div>
+              <p className="mt-3 mb-2 font-medium">{order.address.firstName + " " + order.address.lastName}</p>
+              <div>
+                <p>{order.address.street + ","}</p>
+                <p>
+                  {order.address.city +
+                    ", " +
+                    order.address.state +
+                    ", " +
+                    order.address.country +
+                    ", " +
+                    order.address.zipcode}
+                </p>
+              </div>
+              <p>{order.address.phone}</p>
             </div>
-          ))
-        }
+
+            <div>
+              <p className="text-sm sm:text-[15px]">Items: {order.items.length}</p>
+              <p className="mt-3">Method: {order.paymentMethod}</p>
+              <p>Payment: {order.payment ? 'Done': 'Pending'}</p>
+              <p>Date: {new Date(order.date).toLocaleDateString()}</p>
+              <p></p>
+            </div>
+            <p className="text-sm sm:text-[15px]">{currency}{order.amount}</p>
+            <select onChange={(event)=>statusHandler(event, order._id)} value={order.status} className="outline focus:outline-pink-300 p-2 font-semibold" name="" id="">
+              <option value="Order Placed">Order Placed</option>
+              <option value="Packing">Packing</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Out for delivery">Out for delivery</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+          </div>
+        ))}
       </div>
-    </>
+    </div>
   );
 };
 
-export default List;
+export default Orders;
