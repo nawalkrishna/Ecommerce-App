@@ -61,12 +61,6 @@ This project demonstrates how to build and scale a production-ready ecommerce pl
 
 ---
 
-## 📸 Screenshots
-
-*(Add screenshots here if needed)*
-
----
-
 ## 📦 Setup Instructions
 
 1. **Clone the repository**
